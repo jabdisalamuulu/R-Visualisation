@@ -1,0 +1,126 @@
+---
+title: "Basic R Visualization"
+output:
+  word_document: default
+  pdf_document: default
+date: "2023-10-01"
+---
+
+
+```{r cars}
+library(tidyverse)
+library(dplyr)
+vehicles <- read_csv("https://s3.amazonaws.com/itao-30230/vehicles.csv",
+                     col_types="inincicccici")
+vehicles <- vehicles %>%
+  mutate(class=as.factor(class), drive=as.factor(drive), make=as.factor(make),
+         transmissiontype=as.factor(transmissiontype), citympg = as.numeric(citympg))
+view(vehicles)
+```
+
+
+
+```{r data visualization}
+#1 Part 1 scatter plot
+ggplot(data = vehicles) +
+  geom_point(mapping = aes(x = citympg, y =co2emissions))
+```
+```{r scatter plot}
+#2 Part B. Scatter plot with colors
+ggplot(data = vehicles) +
+  geom_point(mapping = aes(x=citympg, y = co2emissions, color = drive))
+```
+
+
+```{r stacked bar}
+#3 Part C. Stacked bar chart with the number of vehicles tested each year
+ggplot(vehicles, aes(fill = class, x = year)) +
+  geom_bar(position = "stack") +
+  labs(
+    title = "Number of Vehicles Tested by Year and Vehicle Class",
+    x = "Year",
+    y = "Count"
+  )
+```
+
+```{r histogram}
+#4 Part D. Histogram
+ggplot(data = vehicles) +
+  geom_histogram(mapping = aes(x = citympg))+
+  facet_wrap(~transmissiontype)+
+  theme_minimal()
+```
+
+```{r summary statistics}
+#Part 2.
+#Part A. Summary statistics
+tab <- vehicles %>%
+  group_by(class) %>%
+  summarize(minimum_mpg = min(citympg),maximum_mpg = max(citympg), mean_mpg = round(mean(citympg)), median_mpg = median(citympg))
+view(tab)
+```
+
+```{r line}
+#Part B. 
+vehicles %>%
+  group_by(year) %>%
+  summarize(mean_citympg = mean(citympg, na.rm = TRUE), 
+            mean_highwaympg = mean(highwaympg, na.rm = TRUE)) %>%
+  ggplot() +
+  geom_line(aes(x = year, y = mean_citympg, color = 'red')) +
+  geom_line(aes(x = year, y = mean_highwaympg, color = 'blue')) +
+  labs(
+    title = "Change in Average City vs. Highway MPG Over Time",
+    x = "Year",
+    y = "MPG"
+  ) +
+  theme_minimal()
+```
+
+```{r triple line}
+#Part C. Line with average 
+
+vehicles %>%
+  group_by(year) %>%
+  summarize(
+    mean_citympg = mean(citympg, na.rm = TRUE),
+    mean_highwaympg = mean(highwaympg, na.rm = TRUE),
+    average_overallmpg = mean((highwaympg + citympg) / 2, na.rm = TRUE)
+  ) %>%
+  ggplot() +
+  geom_line(aes(x = year, y = mean_citympg, color = 'red')) +
+  geom_line(aes(x = year, y = mean_highwaympg, color = 'blue')) +
+  geom_line(aes(x = year, y = average_overallmpg, color = 'green')) +
+  labs(
+    title = "Change in Average City vs. Highway vs Overall MPG Over Time",
+    x = "Year",
+    y = "MPG"
+  ) +
+  scale_color_manual(values = c('red' = 'red', 'blue' = 'blue', 'green' = 'green')) +
+  theme_minimal()
+
+```
+
+```{r line&facetwrap}
+#Part D
+
+
+vehicles %>%
+  group_by(year, drive) %>%
+  summarize(
+    mean_citympg = mean(citympg, na.rm = TRUE),
+    mean_highwaympg = mean(highwaympg, na.rm = TRUE),
+    average_overallmpg = mean((highwaympg + citympg) / 2, na.rm = TRUE)
+  ) %>%
+  ggplot() +
+  geom_line(aes(x = year, y = mean_citympg, color = 'red')) +
+  geom_line(aes(x = year, y = mean_highwaympg, color = 'blue')) +
+  geom_line(aes(x = year, y = average_overallmpg, color = 'green')) +
+  facet_wrap(~drive)+
+  labs(
+    title = "Change in Average City vs. Highway vs Overall MPG Over Time",
+    x = "Year",
+    y = "MPG"
+  ) +
+  theme_minimal()
+```
